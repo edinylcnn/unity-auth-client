@@ -20,22 +20,22 @@ namespace Auth
             catch { return json; }
         }
 
-        public IEnumerator CheckUsername(string username, Action<bool,string> cb)
+        public IEnumerator CheckUsername(string username, Action<bool,bool,string> cb)
         {
             using var req = UnityWebRequest.Get($"{BaseUrl}/auth/check-username?username={UnityWebRequest.EscapeURL(username)}");
             yield return req.SendWebRequest();
-            if (req.result != UnityWebRequest.Result.Success) { cb(false, req.error); yield break; }
+            if (req.result != UnityWebRequest.Result.Success) { cb(false,false, req.error); yield break; }
             var res = JsonUtility.FromJson<ExistsResponse>(req.downloadHandler.text);
-            cb(true, res.message);
+            cb(true,!res.exists, res.message);
         }
 
-        public IEnumerator CheckEmail(string email, Action<bool,string> cb)
+        public IEnumerator CheckEmail(string email, Action<bool,bool,string> cb)
         {
             using var req = UnityWebRequest.Get($"{BaseUrl}/auth/check-email?email={UnityWebRequest.EscapeURL(email)}");
             yield return req.SendWebRequest();
-            if (req.result != UnityWebRequest.Result.Success) { cb(false, req.error); yield break; }
+            if (req.result != UnityWebRequest.Result.Success) { cb(false,false, req.error); yield break; }
             var res = JsonUtility.FromJson<ExistsResponse>(req.downloadHandler.text);
-            cb(true, res.message);
+            cb(true,!res.exists, res.message);
         }
 
         [Serializable] class SignUpRequest { public string Username; public string Email; public string Password; }

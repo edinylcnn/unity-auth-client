@@ -1,6 +1,7 @@
 using System.Collections;
 using Auth;
 using Core;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -32,32 +33,90 @@ public class AuthUI : MonoBehaviour
 
     public void OnClickOpenSignUp() { panelLogin.SetActive(false); panelSignUp.SetActive(true); ClearSignUpTexts(); }
     public void OnClickBackToLogin() { panelSignUp.SetActive(false); panelLogin.SetActive(true); textLoginInfo.text = ""; }
-
+    
     public void OnEndEditUsername()
     {
-        var u = inputUsername.text.Trim(); if (string.IsNullOrEmpty(u)) { textUsernameStatus.text=""; return; }
-        StartCoroutine(api.CheckUsername(u, (ok,msg)=> { textUsernameStatus.text = ok ? msg : "Network error"; }));
+        var u = inputUsername.text.Trim();
+        if (string.IsNullOrEmpty(u))
+        {
+            ResetInputStatus(inputUsername,textUsernameStatus);
+            return;
+        }
+        if (u.Length < 3)
+        {
+            UpdateInputStatus(inputUsername.transform, textUsernameStatus, "Username must be at least 3 chars.", false);
+            return;
+        }
+        StartCoroutine(api.CheckUsername(u, (ok,exists, msg) =>
+        {
+            textUsernameStatus.text = ok ? "" : "Network error";
+            UpdateInputStatus(inputUsername.transform, textUsernameStatus, msg, exists);
+
+        }));
     }
 
     public void OnEndEditEmail()
     {
-        var e = inputEmail.text.Trim(); if (string.IsNullOrEmpty(e)) { textEmailStatus.text=""; return; }
-        StartCoroutine(api.CheckEmail(e, (ok,msg)=> { textEmailStatus.text = ok ? msg : "Network error"; }));
+        var e = inputEmail.text.Trim();
+        if (string.IsNullOrEmpty(e))
+        {
+            ResetInputStatus(inputEmail,textEmailStatus);
+            return;
+        }
+        if (!e.Contains("@"))
+        {
+            UpdateInputStatus(inputEmail.transform, textEmailStatus, "Please enter a valid e-mail.", false);
+            return;
+        }
+        StartCoroutine(api.CheckEmail(e, (ok,exists, msg) =>
+        {
+            textEmailStatus.text = ok ? "" : "Network error";
+            UpdateInputStatus(inputEmail.transform, textEmailStatus, msg, exists);
+            
+        }));
     }
 
+    public void OnEndEditPassword()
+    {
+        var p1 = inputPass1.text; var p2 = inputPass2.text;
+        if (p1.Length == 0 || p2.Length==0) return;
+        if (p1.Length ==0 && p2.Length ==0)
+        {
+            ResetInputStatus(inputPass1,textSignUpInfo);
+            ResetInputStatus(inputPass2,textSignUpInfo);
+        }
+        bool b = p1 == p2;
+        UpdateInputStatus(inputPass1.transform, textSignUpInfo, "Passwords do not match.", b);
+        UpdateInputStatus(inputPass2.transform, textSignUpInfo, "Passwords do not match.", b);
+        
+    }
+    
     public void OnClickSignUp()
     {
         var u = inputUsername.text.Trim();
         var e = inputEmail.text.Trim();
         var p1 = inputPass1.text; var p2 = inputPass2.text;
+        
+        if (p1 != p2) { return; }
 
-        if (p1 != p2) { textSignUpInfo.text = "Passwords do not match."; return; }
-        if (u.Length < 3) { textSignUpInfo.text = "Username must be at least 3 chars."; return; }
-        if (!e.Contains("@")) { textSignUpInfo.text = "Please enter a valid e-mail."; return; }
-
+        if (u.Length < 3)
+        {
+            UpdateInputStatus(inputUsername.transform, textUsernameStatus, "Username must be at least 3 chars.", false);
+            return;
+        }
+        if (!e.Contains("@"))
+        {
+            UpdateInputStatus(inputEmail.transform, textEmailStatus, "Please enter a valid e-mail.", false);
+            return;
+        }
         StartCoroutine(api.SignUp(u, e, p1, (ok,msg)=>
         {
-            if (ok) { OnClickBackToLogin(); textLoginInfo.text = "Sign up successful. Please sign in."; }
+            if (ok)
+            {
+                OnClickBackToLogin(); 
+                textLoginInfo.color = Color.green;
+                textLoginInfo.text = "Sign up successful. Please sign in.";
+            }
             else textSignUpInfo.text = msg;
         }));
     }
@@ -74,6 +133,37 @@ public class AuthUI : MonoBehaviour
             SceneManager.LoadScene(mainSceneName);
         }));
     }
+    
+    public void UpdateInputStatus(Transform inputField, TMP_Text status, string msg, bool isValid)
+    {
+        Image image = inputField.GetComponent<Image>();
 
-    void ClearSignUpTexts(){ textUsernameStatus.text=""; textEmailStatus.text=""; textSignUpInfo.text=""; }
+        if (!isValid)
+        {
+            inputField.DOShakePosition(0.5f, 15);
+            image?.DOColor(Color.red, 0.5f);
+            status.SetText(msg);
+        }
+        else
+        {
+            image?.DOColor(Color.green, 0.5f);
+            status.SetText("");
+        }
+    }
+
+    public void ResetInputStatus(TMP_InputField inputField, TMP_Text status)
+    {
+        Image image = inputField.GetComponent<Image>();
+        image?.DOColor(Color.white, 0.5f);
+        inputField.text = "";
+        status.SetText("");
+    }
+
+    void ClearSignUpTexts()
+    {
+        ResetInputStatus(inputEmail, textEmailStatus);
+        ResetInputStatus(inputUsername,textUsernameStatus);
+        ResetInputStatus(inputPass1,textSignUpInfo);
+        ResetInputStatus(inputPass2,textSignUpInfo);
+    }
 }
