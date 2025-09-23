@@ -11,16 +11,25 @@ namespace Core
         public string Username { get; private set; }
         public string Email { get; private set; }
 
+
         void Awake()
         {
-            if (I != null) { Destroy(gameObject); return; }
+            if (I != null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             I = this;
             DontDestroyOnLoad(gameObject);
         }
 
         public void Set(AuthResponse auth)
         {
-            Token = auth.token; Username = auth.username; Email = auth.email;
+            Token = auth.token;
+            Username = auth.username;
+            Email = auth.email; 
+            
             PlayerPrefs.SetString("jwt", auth.token);
             PlayerPrefs.SetString("username", auth.username);
             PlayerPrefs.SetString("email", auth.email);
