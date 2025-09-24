@@ -2,7 +2,7 @@
 
 Unity Auth Client is a lightweight authentication client for Unity projects.  
 It handles **user registration, login, JWT-based session management, auto-login**, and also supports **Unity Player Accounts (UPA)** integration.  
-This project is designed to connect seamlessly with a backend API for secure user authentication.
+This project is designed to connect seamlessly with a [backend API](https://github.com/edinylcnn/dotnet-auth-api) for secure user authentication.
 
 ---
 
