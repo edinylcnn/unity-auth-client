@@ -4,9 +4,13 @@ using static Auth.Dtos;
 
 namespace Core
 {
+    /// <summary>
+    /// Manages the authenticated user’s session data.
+    /// Stores JWT, username, and email both in memory and PlayerPrefs.
+    /// </summary>
     public class UserSession : MonoBehaviour
     {
-        public static UserSession I { get; private set; }
+        public static UserSession Instance { get; private set; }
         public string Token { get; private set; }
         public string Username { get; private set; }
         public string Email { get; private set; }
@@ -14,16 +18,19 @@ namespace Core
 
         void Awake()
         {
-            if (I != null)
+            if (Instance != null)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            I = this;
+            Instance = this;
             DontDestroyOnLoad(gameObject);
         }
 
+        /// <summary>
+        /// Save authentication data into the session and PlayerPrefs.
+        /// </summary>
         public void Set(AuthResponse auth)
         {
             Token = auth.token;
@@ -38,12 +45,16 @@ namespace Core
 
         private void Update()
         {
+            // Debug helper: press 'C' to clear session manually
             if (Input.GetKeyDown(KeyCode.C))
             {
                 Clear();
             }
         }
 
+        /// <summary>
+        /// Clear and remove saved PlayerPrefs keys.
+        /// </summary>
         public void Clear()
         {
             Token = Username = Email = null;

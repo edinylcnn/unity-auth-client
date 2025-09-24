@@ -5,6 +5,12 @@ using UnityEngine.SceneManagement;
 
 namespace Auth
 {
+    /// <summary>
+    /// Handles automatic login on application start.
+    /// Checks if a JWT token exists in PlayerPrefs and is still valid.
+    /// If valid, it retrieves the user data from the backend
+    /// and transitions directly into the main scene.
+    /// </summary>
     public class AutoLogin : MonoBehaviour
     {
         public AuthApiClient api;
